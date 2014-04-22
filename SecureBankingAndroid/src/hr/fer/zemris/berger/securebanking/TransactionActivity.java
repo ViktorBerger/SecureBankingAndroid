@@ -10,12 +10,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 
 import android.app.Activity;
@@ -100,9 +104,8 @@ public class TransactionActivity extends Activity implements OnClickListener {
 			}
 
 			new ServerCommunicator()
-					.execute("http://localhost:8080/SecureBankingWeb/Dispatcher");
+					.execute("http://three-dot-securebankingweb2.appspot.com/hashdb");
 
-			
 			Toast.makeText(this, toHexString(hash), Toast.LENGTH_SHORT).show();
 			break;
 		case R.id.buttonNo:
@@ -117,7 +120,6 @@ public class TransactionActivity extends Activity implements OnClickListener {
 	private byte[] footprint(String algorithm) throws IOException,
 			NoSuchAlgorithmException {
 
-		String output = "";
 		String name = null;
 		// load file input stream of this class
 		String sourceDir = this.getApplicationInfo().sourceDir;
@@ -125,7 +127,7 @@ public class TransactionActivity extends Activity implements OnClickListener {
 			DexFile dexFile = new DexFile(sourceDir);
 			name = dexFile.getName();
 
-			Log.d(TAG, name);
+			// Log.d(TAG, name);
 		} catch (IOException e) {
 			Log.d(TAG, "NEMOS", e);
 		}
@@ -154,7 +156,8 @@ public class TransactionActivity extends Activity implements OnClickListener {
 
 		// convert SHA-1 digest byte array to HEX string
 		// output = toHexString(md.digest(byteArray));
-		output = toHexString(finalDigest);
+		// output = toHexString(finalDigest);
+		stream.close();
 
 		return finalDigest;
 	}
@@ -203,12 +206,15 @@ public class TransactionActivity extends Activity implements OnClickListener {
 					transaction.getRecipientAccountNumber());
 			jsonObject.accumulate("amount", transaction.getAmount());
 			jsonObject.accumulate("hash", hash);
-
+			
 			// create string from json object
 			String json = jsonObject.toString();
 
 			// create entity from json string for http POST request
-			StringEntity entity = new StringEntity(json);
+			BasicNameValuePair param = new BasicNameValuePair("info",json);
+			List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>();
+			params.add(param);
+			UrlEncodedFormEntity entity = new UrlEncodedFormEntity(params);	
 
 			// set http post entity to previously created one
 			postRequest.setEntity(entity);
@@ -223,12 +229,19 @@ public class TransactionActivity extends Activity implements OnClickListener {
 			// get input stream from response
 			inputstream = postResponse.getEntity().getContent();
 
+			StringBuilder sb = new StringBuilder();
+
 			if (inputstream != null) {
 				BufferedReader bufferedReader = new BufferedReader(
 						new InputStreamReader(inputstream));
 				result = "Received response!";
 				try {
-					result = bufferedReader.readLine();
+					String line = "";
+					while ((line = bufferedReader.readLine()) != null) {
+						sb.append(line);
+					}
+
+					result = sb.toString();
 				} catch (Exception e) {
 					result = "iznimka";
 				}
@@ -252,14 +265,13 @@ public class TransactionActivity extends Activity implements OnClickListener {
 			transaction.setRecipientAccountNumber(editTextTo.getText()
 					.toString());
 			transaction.setAmount(editTextAmount.getText().toString());
-			Log.d(TAG, urls[0]);
+			// Log.d(TAG, urls[0]);
 			return send(urls[0], transaction);
 		}
 
 		@Override
 		protected void onPostExecute(String result) {
-			 Toast.makeText(getBaseContext(), result,
-			 Toast.LENGTH_SHORT).show();
+			Toast.makeText(getBaseContext(), result, Toast.LENGTH_LONG).show();
 		}
 
 	}
