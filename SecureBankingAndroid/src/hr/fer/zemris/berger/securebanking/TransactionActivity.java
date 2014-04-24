@@ -2,7 +2,6 @@ package hr.fer.zemris.berger.securebanking;
 
 import hr.fer.zemris.berger.securebanking.model.Transaction;
 import hr.fer.zemris.berger.securebanking.util.Util;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +11,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -20,7 +18,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
@@ -32,10 +30,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+/**
+ * Main application activity.
+ * 
+ * @author Viktor Berger
+ * @version 1.0
+ */
 public class TransactionActivity extends Activity implements OnClickListener {
 
 	public static final String TAG = "Trans";
 
+	/** URL of the server. */
 	private static String serviceURL = "http://securebankingweb.appspot.com/hashdb";
 	private static byte[] hash;
 	private static String signature;
@@ -96,6 +101,13 @@ public class TransactionActivity extends Activity implements OnClickListener {
 
 	}
 
+	/**
+	 * Sends transaction and footprint data to server.
+	 * @param url server url
+	 * @param transaction transaction object with information about transaction
+	 * @return server response
+	 */
+	@SuppressLint("SimpleDateFormat")
 	public static String send(String url, Transaction transaction) {
 		InputStream inputstream;
 		String result = "Didn't receive response!";
@@ -105,7 +117,7 @@ public class TransactionActivity extends Activity implements OnClickListener {
 
 			// create post request
 			HttpPost postRequest = new HttpPost(url);
-			
+
 			SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 			Date date = new Date();
 
@@ -162,6 +174,11 @@ public class TransactionActivity extends Activity implements OnClickListener {
 
 	}
 
+	/**
+	 * Implements communication with server.
+	 * @author Viktor Berger
+	 * @version 1.0
+	 */
 	private class ServerCommunicator extends AsyncTask<String, Void, String> {
 
 		@Override
