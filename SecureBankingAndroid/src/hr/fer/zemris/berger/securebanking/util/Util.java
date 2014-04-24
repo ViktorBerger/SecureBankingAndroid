@@ -1,10 +1,5 @@
 package hr.fer.zemris.berger.securebanking.util;
 
-import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
-import android.provider.Settings;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -14,6 +9,11 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.provider.Settings;
+import android.widget.Toast;
 import dalvik.system.DexFile;
 
 
@@ -27,6 +27,8 @@ public class Util {
         String sourceDir = activity.getApplicationInfo().sourceDir;
         DexFile dexFile = new DexFile(sourceDir);
         name = dexFile.getName();
+        
+        Toast.makeText(activity, name, Toast.LENGTH_LONG).show();
 
         File file = new File(name);
         byte[] buffer = new byte[4096];

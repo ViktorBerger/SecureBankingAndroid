@@ -1,11 +1,14 @@
 package hr.fer.zemris.berger.securebanking.model;
 
+import java.util.Date;
+
 
 public class Footprint {
 
     private String deviceID;
     private String hash;
     private String signature;
+    private Date timestamp;
 
     public Footprint(String deviceID, String hash, String signature) {
         this.deviceID = deviceID;
@@ -36,5 +39,15 @@ public class Footprint {
     public void setSignature(String signature) {
         this.signature = signature;
     }
+
+	public Date getTimestamp() {
+		return timestamp;
+	}
+
+	public void setTimestamp(Date timestamp) {
+		this.timestamp = timestamp;
+	}
+    
+    
 
 }
