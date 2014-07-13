@@ -1,5 +1,10 @@
 package hr.fer.zemris.berger.securebanking.util;
 
+import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.provider.Settings;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,10 +12,6 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
-import android.provider.Settings;
 import dalvik.system.DexFile;
 
 /**
@@ -42,18 +43,14 @@ public class Util {
         byte[] buffer = new byte[4096];
 
         MessageDigest md = MessageDigest.getInstance(algorithm);
-
         BufferedInputStream stream = new BufferedInputStream(
                 new FileInputStream(file));
 
         int len = 0;
-
         while ((len = stream.read(buffer)) != -1) {
             md.update(buffer, 0, len);
         }
-
         byte[] finalDigest = md.digest(buffer);
-
         stream.close();
 
         return finalDigest;

@@ -1,7 +1,31 @@
 package hr.fer.zemris.berger.securebanking;
 
-import hr.fer.zemris.berger.securebanking.model.Transaction;
-import hr.fer.zemris.berger.securebanking.util.Util;
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,24 +35,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONObject;
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
+
+import hr.fer.zemris.berger.securebanking.model.Transaction;
+import hr.fer.zemris.berger.securebanking.util.Util;
 
 /**
  * Main application activity.
@@ -41,7 +50,7 @@ public class TransactionActivity extends Activity implements OnClickListener {
 	public static final String TAG = "Trans";
 
 	/** URL of the server. */
-	private static String serviceURL = "http://securebankingweb.appspot.com/hashdb";
+	private static String serviceURL = "http://securebankingweb2.appspot.com/communication";
 	private static byte[] hash;
 	private static String signature;
 	private static String deviceID;
@@ -56,6 +65,11 @@ public class TransactionActivity extends Activity implements OnClickListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+        if (!isConnectedToInternet()) {
+            showNoConnectionDialog(this);
+        }
+
 
 		editTextTo = (EditText) findViewById(R.id.editTextTo);
 		editTextFrom = (EditText) findViewById(R.id.editTextFrom);
@@ -89,17 +103,87 @@ public class TransactionActivity extends Activity implements OnClickListener {
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.buttonYes:
-			Log.d(TAG, Util.toHexString(hash));
-			new ServerCommunicator().execute(serviceURL);
-			Toast.makeText(this, Util.toHexString(hash), Toast.LENGTH_SHORT)
-					.show();
+            if(isConnectedToInternet()) {
+                showNoConnectionDialog(this);
+            }
+            if(isFormValid()) {
+                Log.d(TAG, Util.toHexString(hash));
+                new ServerCommunicator().execute(serviceURL);
+                Toast.makeText(this, Util.toHexString(hash), Toast.LENGTH_SHORT)
+                        .show();
+            }
 			break;
 		case R.id.buttonNo:
-			Toast.makeText(this, "No", Toast.LENGTH_SHORT).show();
+            finish();
+            moveTaskToBack(true);
 			break;
 		}
 
 	}
+
+    /**
+     * Checks if the phone is connected to the internet.
+     * @return <code>true</code> if there is an active internet connection,
+     *         <code>false</code> otherwise
+     */
+    private boolean isConnectedToInternet() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if ((cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected()))
+            return true;
+        else
+            return false;
+    }
+
+
+    /**
+     * Creates a dialog which enables user to jump directly to internet settings.
+     * @param context application context
+     */
+    public static void showNoConnectionDialog(Context context) {
+        final Context ctx = context;
+        AlertDialog.Builder builder = new AlertDialog.Builder(ctx);
+        builder.setCancelable(true);
+        builder.setMessage("No connection");
+        builder.setTitle("No internet connection");
+        builder.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                ctx.startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS));
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                return;
+            }
+        });
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            public void onCancel(DialogInterface dialog) {
+                return;
+            }
+        });
+
+        builder.show();
+    }
+
+    /**
+     * Form validation method.
+     * @return <code>true<code/> if form is valid, <code>false</code> otherwise
+     */
+    private boolean isFormValid() {
+        boolean valid = true;
+        if(editTextTo.getText().length() != 10) {
+            editTextTo.setError("Recipient account has to be 10 digits long!");
+            valid = false;
+        }
+        if(editTextFrom.getText().length() != 10) {
+            editTextFrom.setError("Recipient account has to be 10 digits long!");
+            valid = false;
+        }
+        if(editTextAmount.getText().length() == 0) {
+            editTextAmount.setError("Amount is required!");
+            valid = false;
+        }
+        return valid;
+    }
 
 	/**
 	 * Sends transaction and footprint data to server.

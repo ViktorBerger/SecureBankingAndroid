@@ -74,7 +74,7 @@
             android:layout_marginTop="@dimen/space"
             android:background="@color/grey"
             android:hint="@string/hint_amount"
-            android:inputType="number"
+            android:inputType="numberDecimal"
             android:padding="@dimen/edit_text_padding" />
 
         <TextView
