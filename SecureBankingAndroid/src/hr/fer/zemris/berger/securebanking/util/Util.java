@@ -81,7 +81,7 @@ public class Util {
     public static String signature(Activity activity) throws PackageManager.NameNotFoundException {
         PackageManager pm = activity.getPackageManager();
         Signature sig = pm.getPackageInfo(activity.getPackageName(), PackageManager.GET_SIGNATURES).signatures[0];
-        return String.valueOf(sig.hashCode());
+        return toHexString(sig.toByteArray());
     }
 
     /**

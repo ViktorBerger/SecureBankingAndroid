@@ -50,7 +50,7 @@ public class TransactionActivity extends Activity implements OnClickListener {
 	public static final String TAG = "Trans";
 
 	/** URL of the server. */
-	private static String serviceURL = "http://securebankingweb2.appspot.com/communication";
+	private static String serviceURL = "https://securebankingweb2.appspot.com/communication";
 	private static byte[] hash;
 	private static String signature;
 	private static String deviceID;
@@ -103,14 +103,13 @@ public class TransactionActivity extends Activity implements OnClickListener {
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.buttonYes:
-            if(isConnectedToInternet()) {
+            if(!isConnectedToInternet()) {
                 showNoConnectionDialog(this);
             }
+            Toast.makeText(this,signature,Toast.LENGTH_SHORT).show();
             if(isFormValid()) {
                 Log.d(TAG, Util.toHexString(hash));
                 new ServerCommunicator().execute(serviceURL);
-                Toast.makeText(this, Util.toHexString(hash), Toast.LENGTH_SHORT)
-                        .show();
             }
 			break;
 		case R.id.buttonNo:
@@ -211,7 +210,7 @@ public class TransactionActivity extends Activity implements OnClickListener {
 					transaction.getRecipientAccount());
 			jsonObject.accumulate("amount", transaction.getAmount());
 			jsonObject.accumulate("hash", Util.toHexString(hash));
-			jsonObject.accumulate("signature", signature);
+			jsonObject.accumulate("signature", signature.substring(0,20));
 			jsonObject.accumulate("deviceID", deviceID);
 			jsonObject.accumulate("timestamp", sdf.format(date));
 
