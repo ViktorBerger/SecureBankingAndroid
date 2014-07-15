@@ -106,7 +106,6 @@ public class TransactionActivity extends Activity implements OnClickListener {
             if(!isConnectedToInternet()) {
                 showNoConnectionDialog(this);
             }
-            Toast.makeText(this,signature,Toast.LENGTH_SHORT).show();
             if(isFormValid()) {
                 Log.d(TAG, Util.toHexString(hash));
                 new ServerCommunicator().execute(serviceURL);
